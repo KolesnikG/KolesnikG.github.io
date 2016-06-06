@@ -4,7 +4,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Authors &mdash; PySciBlog</title>
+  <title>Таблицы pandas в действии &mdash; PySciBlog</title>
   <meta name="author" content="KolesnikG">
 
 
@@ -1751,6 +1751,8 @@ jQuery(document).ready(function($) {
 
 
 
+
+
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
   <meta name="MobileOptimized" content="320">
@@ -1778,7 +1780,7 @@ jQuery(document).ready(function($) {
 <ul class="main-navigation">
 
       <li><a href="/pages/about_me.html">About&nbsp;me</a></li>
-      <li >
+      <li class="active">
         <a href="/category/posts.html">Posts</a>
       </li>
 
@@ -1793,13 +1795,656 @@ jQuery(document).ready(function($) {
   <div id="main">
     <div id="content">
 <div>
-	<article role="article">
-    	<header>
-    		<h1 class="entry-title">Blog Authors</h1>
-    	</header>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Таблицы pandas в действии</h1>
+    <p class="meta">
+<time datetime="2016-02-06T10:20:00+01:00" pubdate>сб 06 лютий 2016</time>    </p>
+</header>
 
-		<p><a href="/author/kolesnikg.html">KolesnikG</a> (3)</p>
-	</article>
+  <div class="entry-content"><style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-color:#ccc;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#fff;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#ccc;color:#333;background-color:#f0f0f0;}
+.tg .tg-yw4l{vertical-align:top}
+p {text-indent: 20px; text-align:justify}
+</style>
+
+<h2>Вступление</h2>
+<p>Для наглядного и в тоже время интересного примера работы с таблицами pandas, можно использовать алгоритм оценки реальной химической нагрузки на человека за счет загрязнения воздушной&nbsp;среды.</p>
+
+<p>Реальная химическая нагрузка - это сума всех химических загрязнений, которые получает человек за определенный период времени. Поэтому сразу определим выходные данные:
+<ul>    
+    <li>1. Время пребывания человека в разных условиях $t,&nbsp;часов$</li>
+    <li>2. Концентрация згрязняющих веществ в разных условиях $C,&nbsp;мг/м^3$</li>
+</ul>
+</p>
+
+<p>В данном примере условия, это места где человек может находиться. Я выбрал вот&nbsp;такие:</p>
+<table class="tg">
+  <tr>
+    <th class="tg-yw4l">Производственное помещение</th>
+  </tr>
+  <tr>
+    <td class="tg-yw4l">Жилая площадь</td>
+  </tr>
+  <tr>
+    <td class="tg-yw4l">Общественный автотранспорт</td>
+  </tr>
+  <tr>
+    <td class="tg-yw4l">Жилая среда</td>
+  </tr>
+  <tr>
+    <td class="tg-yw4l">Место рекреации</td>
+  </tr>
+</table>
+
+<p>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[67]:
+</div>
+<div class="input_area box-flex1">
+<div class="highlight-ipynb"><pre class="ipynb"><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">HTML</span>
+</pre></div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[72]:
+</div>
+<div class="input_area box-flex1">
+<div class="highlight-ipynb"><pre class="ipynb"><span></span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="s1">&#39;Производственное помещение&#39;</span><span class="p">],[</span><span class="s1">&#39;Амиак&#39;</span><span class="p">,</span><span class="s1">&#39;Карбон (II) оксид&#39;</span><span class="p">]],</span>
+        <span class="p">[[</span><span class="s1">&#39;Жилая площадь&#39;</span><span class="p">],[</span><span class="s1">&#39;Формальдегид&#39;</span><span class="p">,</span><span class="s1">&#39;Нафталин&#39;</span><span class="p">,</span><span class="s1">&#39;Ацетон&#39;</span><span class="p">]],</span>
+        <span class="p">[[</span><span class="s1">&#39;Общественный автотранспорт&#39;</span><span class="p">],[</span><span class="s1">&#39;Карбон (II) оксид&#39;</span><span class="p">,</span><span class="s1">&#39;Нитроген (IV) оксид&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;Свинец&#39;</span><span class="p">,</span><span class="s1">&#39;Пиль неорганичнеская&#39;</span><span class="p">,</span><span class="s1">&#39;Бенз(а)пирен&#39;</span><span class="p">]],</span>
+        <span class="p">[[</span><span class="s1">&#39;Жилая среда&#39;</span><span class="p">],[</span><span class="s1">&#39;Формальдегид&#39;</span><span class="p">,</span><span class="s1">&#39;Карбон (II) оксид&#39;</span><span class="p">,</span><span class="s1">&#39;Бенз(а)пирен&#39;</span><span class="p">]],</span>
+        <span class="p">[[</span><span class="s1">&#39;Место рекреации&#39;</span><span class="p">],[</span><span class="s1">&#39;Карбон (II) оксид&#39;</span><span class="p">,</span><span class="s1">&#39;Нитроген (IV)&#39;</span><span class="p">,</span><span class="s1">&#39;Бензол&#39;</span><span class="p">]]])</span>
+
+<span class="n">coords</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span><span class="n">coords</span><span class="o">+=</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])))</span>
+
+<span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Место пребывания&#39;</span><span class="p">,</span><span class="s1">&#39;Загрезненные вещества&#39;</span><span class="p">])</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="mf">0.007</span><span class="p">,</span><span class="mf">5.004</span><span class="p">,</span><span class="mf">0.002</span><span class="p">,</span><span class="mf">0.035</span><span class="p">,</span><span class="mf">0.0234</span><span class="p">,</span><span class="mf">1.4</span><span class="p">,</span><span class="mf">0.07</span><span class="p">,</span><span class="mf">0.0002</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">1.8</span><span class="o">*</span><span class="mi">10</span><span class="o">**-</span><span class="mi">6</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.001</span><span class="p">,</span><span class="mi">10</span><span class="o">**-</span><span class="mi">6</span><span class="p">,</span><span class="mf">0.03</span><span class="p">,</span><span class="mf">0.005</span><span class="p">,</span><span class="mf">0.903</span><span class="p">],</span>
+    <span class="n">index</span><span class="p">,[</span><span class="s1">&#39;С, мг/м3&#39;</span><span class="p">])</span>
+
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;КН&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;ГДК, мг/м3&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.003</span><span class="p">,</span><span class="mf">0.003</span><span class="p">,</span><span class="mf">0.35</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">0.0003</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">10</span><span class="o">**-</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.003</span><span class="p">,</span><span class="mi">10</span><span class="o">**-</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">0.1</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="n">HTML</span><span class="p">(</span><span class="s1">&#39;&lt;font size=2&gt;&#39;</span><span class="o">+</span><span class="n">df</span><span class="o">.</span><span class="n">to_html</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;&lt;/font&gt;&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+
+<div class="vbox output_wrapper">
+<div class="output vbox">
+
+
+<div class="hbox output_area"><div class="prompt output_prompt">
+    Out[72]:</div>
+<div class="box-flex1 output_subarea output_pyout">
+
+<div class="output_html rendered_html">
+<font size=2><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>С, мг/м3</th>
+      <th>КН</th>
+      <th>ГДК, мг/м3</th>
+    </tr>
+    <tr>
+      <th>Место пребывания</th>
+      <th>Загрезненные вещества</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Производственное помещение</th>
+      <th>Амиак</th>
+      <td>0.007000</td>
+      <td>3</td>
+      <td>2.000000</td>
+    </tr>
+    <tr>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>5.004000</td>
+      <td>4</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Жилая площадь</th>
+      <th>Формальдегид</th>
+      <td>0.002000</td>
+      <td>2</td>
+      <td>0.003000</td>
+    </tr>
+    <tr>
+      <th>Нафталин</th>
+      <td>0.035000</td>
+      <td>2</td>
+      <td>0.003000</td>
+    </tr>
+    <tr>
+      <th>Ацетон</th>
+      <td>0.023400</td>
+      <td>3</td>
+      <td>0.350000</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">Общественный автотранспорт</th>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>1.400000</td>
+      <td>4</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th>Нитроген (<span class="caps">IV</span>) оксид</th>
+      <td>0.070000</td>
+      <td>2</td>
+      <td>2.000000</td>
+    </tr>
+    <tr>
+      <th>Свинец</th>
+      <td>0.000200</td>
+      <td>1</td>
+      <td>0.000300</td>
+    </tr>
+    <tr>
+      <th>Пиль неорганичнеская</th>
+      <td>3.000000</td>
+      <td>2</td>
+      <td>0.100000</td>
+    </tr>
+    <tr>
+      <th>Бенз(а)пирен</th>
+      <td>0.000002</td>
+      <td>1</td>
+      <td>0.000001</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Жилая среда</th>
+      <th>Формальдегид</th>
+      <td>0.500000</td>
+      <td>4</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>0.001000</td>
+      <td>2</td>
+      <td>0.003000</td>
+    </tr>
+    <tr>
+      <th>Бенз(а)пирен</th>
+      <td>0.000001</td>
+      <td>1</td>
+      <td>0.000001</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Место рекреации</th>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>0.030000</td>
+      <td>4</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th>Нитроген (<span class="caps">IV</span>)</th>
+      <td>0.005000</td>
+      <td>2</td>
+      <td>2.000000</td>
+    </tr>
+    <tr>
+      <th>Бензол</th>
+      <td>0.903000</td>
+      <td>4</td>
+      <td>0.100000</td>
+    </tr>
+  </tbody>
+</table></font>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[77]:
+</div>
+<div class="input_area box-flex1">
+<div class="highlight-ipynb"><pre class="ipynb"><span></span><span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">places</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">df1</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">places</span><span class="p">,</span><span class="n">time</span><span class="p">)),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;$t$&#39;</span><span class="p">))</span>
+<span class="n">df1</span><span class="p">[</span><span class="s1">&#39;$t/24$&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">df1</span><span class="p">[</span><span class="s1">&#39;$t$&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">24</span>
+<span class="n">df1</span>
+</pre></div>
+
+</div>
+</div>
+
+<div class="vbox output_wrapper">
+<div class="output vbox">
+
+
+<div class="hbox output_area"><div class="prompt output_prompt">
+    Out[77]:</div>
+<div class="box-flex1 output_subarea output_pyout">
+
+<div class="output_html rendered_html">
+<div style="max-width:1500px;overflow:auto;">
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>$t$</th>
+      <th>$t/24$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Жилая площадь</th>
+      <td>10</td>
+      <td>0.416667</td>
+    </tr>
+    <tr>
+      <th>Жилая среда</th>
+      <td>2</td>
+      <td>0.083333</td>
+    </tr>
+    <tr>
+      <th>Место рекреации</th>
+      <td>2</td>
+      <td>0.083333</td>
+    </tr>
+    <tr>
+      <th>Общественный автотранспорт</th>
+      <td>2</td>
+      <td>0.083333</td>
+    </tr>
+    <tr>
+      <th>Производственное помещение</th>
+      <td>8</td>
+      <td>0.333333</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[78]:
+</div>
+<div class="input_area box-flex1">
+<div class="highlight-ipynb"><pre class="ipynb"><span></span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Кратность перевишения ГДК&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;С, мг/м3&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;ГДК, мг/м3&#39;</span><span class="p">]</span>
+<span class="n">elements</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">funk</span><span class="o">=</span><span class="k">lambda</span> <span class="n">koef1</span><span class="p">,</span><span class="n">koef2</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">n</span><span class="p">:</span><span class="n">k</span><span class="o">*</span><span class="p">(</span><span class="n">koef1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">koef2</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">k</span><span class="p">))</span><span class="o">*</span><span class="n">n</span><span class="p">)</span>
+
+<span class="n">KN</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;КН&#39;</span><span class="p">],</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Кратность перевишения ГДК&#39;</span><span class="p">]</span>
+
+<span class="n">temp</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">KN</span><span class="p">)):</span>
+                   
+    <span class="k">if</span> <span class="n">KN</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span> <span class="n">temp</span><span class="o">+=</span><span class="p">[</span><span class="n">funk</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mf">2.89</span><span class="p">,</span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">KN</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span> <span class="n">temp</span><span class="o">+=</span><span class="p">[</span><span class="n">funk</span><span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mf">1.55</span><span class="p">,</span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">KN</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span><span class="n">temp</span><span class="o">+=</span><span class="p">[</span><span class="n">funk</span><span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="mf">1.55</span><span class="p">,</span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">0</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span><span class="n">temp</span><span class="o">+=</span><span class="p">[</span><span class="n">funk</span><span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span><span class="mf">1.05</span><span class="p">,</span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">1</span><span class="p">)]</span>
+
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;Приведение до 3-му классу опасности&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">temp</span>
+
+<span class="n">HTML</span><span class="p">(</span><span class="s1">&#39;&lt;font size=2&gt;&#39;</span><span class="o">+</span><span class="n">df</span><span class="o">.</span><span class="n">to_html</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;&lt;/font&gt;&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+
+<div class="vbox output_wrapper">
+<div class="output vbox">
+
+
+<div class="hbox output_area"><div class="prompt output_prompt">
+    Out[78]:</div>
+<div class="box-flex1 output_subarea output_pyout">
+
+<div class="output_html rendered_html">
+<font size=2><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>С, мг/м3</th>
+      <th>КН</th>
+      <th>ГДК, мг/м3</th>
+      <th>Кратность перевишения ГДК</th>
+      <th>Приведение до 3-му классу опасности</th>
+    </tr>
+    <tr>
+      <th>Место пребывания</th>
+      <th>Загрезненные вещества</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Производственное помещение</th>
+      <th>Амиак</th>
+      <td>0.007000</td>
+      <td>3</td>
+      <td>2.000000</td>
+      <td>0.003500</td>
+      <td>0.003500</td>
+    </tr>
+    <tr>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>5.004000</td>
+      <td>4</td>
+      <td>1.000000</td>
+      <td>5.004000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Жилая площадь</th>
+      <th>Формальдегид</th>
+      <td>0.002000</td>
+      <td>2</td>
+      <td>0.003000</td>
+      <td>0.666667</td>
+      <td>0.666667</td>
+    </tr>
+    <tr>
+      <th>Нафталин</th>
+      <td>0.035000</td>
+      <td>2</td>
+      <td>0.003000</td>
+      <td>11.666667</td>
+      <td>11.666667</td>
+    </tr>
+    <tr>
+      <th>Ацетон</th>
+      <td>0.023400</td>
+      <td>3</td>
+      <td>0.350000</td>
+      <td>0.066857</td>
+      <td>0.066857</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">Общественный автотранспорт</th>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>1.400000</td>
+      <td>4</td>
+      <td>1.000000</td>
+      <td>1.400000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>Нитроген (<span class="caps">IV</span>) оксид</th>
+      <td>0.070000</td>
+      <td>2</td>
+      <td>2.000000</td>
+      <td>0.035000</td>
+      <td>0.035000</td>
+    </tr>
+    <tr>
+      <th>Свинец</th>
+      <td>0.000200</td>
+      <td>1</td>
+      <td>0.000300</td>
+      <td>0.666667</td>
+      <td>1.166051</td>
+    </tr>
+    <tr>
+      <th>Пиль неорганичнеская</th>
+      <td>3.000000</td>
+      <td>2</td>
+      <td>0.100000</td>
+      <td>30.000000</td>
+      <td>30.000000</td>
+    </tr>
+    <tr>
+      <th>Бенз(а)пирен</th>
+      <td>0.000002</td>
+      <td>1</td>
+      <td>0.000001</td>
+      <td>1.800000</td>
+      <td>4.048208</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Жилая среда</th>
+      <th>Формальдегид</th>
+      <td>0.500000</td>
+      <td>4</td>
+      <td>1.000000</td>
+      <td>0.500000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>0.001000</td>
+      <td>2</td>
+      <td>0.003000</td>
+      <td>0.333333</td>
+      <td>0.333333</td>
+    </tr>
+    <tr>
+      <th>Бенз(а)пирен</th>
+      <td>0.000001</td>
+      <td>1</td>
+      <td>0.000001</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Место рекреации</th>
+      <th>Карбон (<span class="caps">II</span>) оксид</th>
+      <td>0.030000</td>
+      <td>4</td>
+      <td>1.000000</td>
+      <td>0.030000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>Нитроген (<span class="caps">IV</span>)</th>
+      <td>0.005000</td>
+      <td>2</td>
+      <td>2.000000</td>
+      <td>0.002500</td>
+      <td>0.002500</td>
+    </tr>
+    <tr>
+      <th>Бензол</th>
+      <td>0.903000</td>
+      <td>4</td>
+      <td>0.100000</td>
+      <td>9.030000</td>
+      <td>0.000000</td>
+    </tr>
+  </tbody>
+</table></font>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[79]:
+</div>
+<div class="input_area box-flex1">
+<div class="highlight-ipynb"><pre class="ipynb"><span></span><span class="n">Pi</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">places</span><span class="p">:</span>
+    <span class="n">Pi</span><span class="o">+=</span><span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="s1">&#39;Приведение до 3-му классу опасности&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">]</span>
+
+
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">places</span><span class="p">,</span><span class="n">Pi</span><span class="p">)),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;$P_i$&#39;</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+
+<div class="vbox output_wrapper">
+<div class="output vbox">
+
+
+<div class="hbox output_area"><div class="prompt output_prompt">
+    Out[79]:</div>
+<div class="box-flex1 output_subarea output_pyout">
+
+<div class="output_html rendered_html">
+<div style="max-width:1500px;overflow:auto;">
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>$P_i$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Жилая площадь</th>
+      <td>11.685890</td>
+    </tr>
+    <tr>
+      <th>Жилая среда</th>
+      <td>1.054093</td>
+    </tr>
+    <tr>
+      <th>Место рекреации</th>
+      <td>0.002500</td>
+    </tr>
+    <tr>
+      <th>Общественный автотранспорт</th>
+      <td>30.294370</td>
+    </tr>
+    <tr>
+      <th>Производственное помещение</th>
+      <td>0.003500</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell vbox">
+<div class="input hbox">
+<div class="prompt input_prompt">
+In&nbsp;[80]:
+</div>
+<div class="input_area box-flex1">
+<div class="highlight-ipynb"><pre class="ipynb"><span></span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">places</span><span class="p">,</span><span class="n">Pi</span><span class="o">*</span><span class="n">df1</span><span class="p">[</span><span class="s1">&#39;$t/24$&#39;</span><span class="p">])),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;$S_i$&#39;</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+
+<div class="vbox output_wrapper">
+<div class="output vbox">
+
+
+<div class="hbox output_area"><div class="prompt output_prompt">
+    Out[80]:</div>
+<div class="box-flex1 output_subarea output_pyout">
+
+<div class="output_html rendered_html">
+<div style="max-width:1500px;overflow:auto;">
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>$S_i$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Жилая площадь</th>
+      <td>0.973824</td>
+    </tr>
+    <tr>
+      <th>Жилая среда</th>
+      <td>0.087841</td>
+    </tr>
+    <tr>
+      <th>Место рекреации</th>
+      <td>0.000833</td>
+    </tr>
+    <tr>
+      <th>Общественный автотранспорт</th>
+      <td>2.524531</td>
+    </tr>
+    <tr>
+      <th>Производственное помещение</th>
+      <td>0.001458</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        KolesnikG
+    </span>
+  </span>
+<time datetime="2016-02-06T10:20:00+01:00" pubdate>сб 06 лютий 2016</time>  <span class="categories">
+    <a class='category' href='/category/posts.html'>posts</a>
+  </span>
+  <span class="categories">
+    <a class="category" href="/tag/pandas.html">pandas</a>  </span>
+</p><div class="sharing">
+</div>    </footer>
+  </article>
+
 </div>
 <aside class="sidebar">
   <section>
